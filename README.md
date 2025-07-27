@@ -11,7 +11,8 @@ The layout of the graph is dynamically updated in real-time based on the followi
 
 You can customize various properties such as each node’s initial position, charge, mass, as well as each link’s natural length and spring constant.
 
-[DEMO](https://tadashi9e.github.io/spring_graph/test.html)
+- [Document](https://tadashi9e.github.io/spring_graph/docs/)
+- [DEMO](https://tadashi9e.github.io/spring_graph/test.html)
 
 # File Structure
 

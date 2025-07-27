@@ -10,7 +10,8 @@ JavaScript を用いて、SVG 上にノード（文字列や四角形）とエ�
 
 ノードの初期位置、電荷、質量、リンクの自然長やバネ定数などは、必要に応じて個別に設定できます。
 
-[デモ](https://tadashi9e.github.io/spring_graph/test.html)
+- [ドキュメント](https://tadashi9e.github.io/spring_graph/docs/)
+- [デモ](https://tadashi9e.github.io/spring_graph/test.html)
 
 # ファイル構成
 

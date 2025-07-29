@@ -20,9 +20,15 @@ You can customize various properties such as each node’s initial position, cha
 
 A JavaScript library that defines nodes and edges and performs the physical simulation.
 
-## spring_graph_compound.js
+## spring_graph_constraints.js
 
-A constraint library for grouping multiple nodes. It allows nodes to be visually grouped and aligned either vertically or horizontally.
+A library for defining constraints among multiple nodes. It provides the following features:
+
+- Keeps nodes within the visible display area.
+- Pins the display position of specific nodes.
+- Aligns nodes horizontally or vertically to present them as a cohesive group.
+- Applies horizontal or vertical repulsion between nodes to control their relative positioning.
+
 
 ## test.js, test.html, test.css
 

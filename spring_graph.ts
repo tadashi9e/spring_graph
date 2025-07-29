@@ -4,8 +4,6 @@
 //
 // spring_graph_init()
 //    Initialize this library.
-// class FieldConstraint
-//    Constraint the potision of nodes into the SVG graphics area.
 // class TextNode
 //    SVG <text/> class.
 //    Behaves like a particle with an electric charge.
@@ -130,7 +128,7 @@ abstract class SNode {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    abstract setAttribute(name: string, value: string): void;
+    abstract setAttribute(name: string, value: string): SNode;
     /**
      * update SVG.
      */
@@ -177,7 +175,7 @@ abstract class SEdge {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    abstract setAttribute(name: string, value: string): void;
+    abstract setAttribute(name: string, value: string): SEdge;
     /**
      * update SVG.
      */
@@ -235,7 +233,7 @@ class TextNode extends SNode {
             throw new Error("invalid svg container");
         }
         const text = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-        text.setAttribute('id', this.id);
+        text.setAttribute('id', this.id)
         text.setAttribute('x', _float2intstr(this.x));
         text.setAttribute('y', _float2intstr(this.y));
         text.setAttribute('text-anchor', 'middle');
@@ -259,11 +257,12 @@ class TextNode extends SNode {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    setAttribute(name: string, value: string): void {
+    setAttribute(name: string, value: string): SNode {
         if (this._element === undefined) {
             throw new Error('TextNode initialization error');
         }
         this._element.setAttribute(name, value);
+        return this;
     }
     /**
      * Update &lt;text/&gt; position on SVG.
@@ -350,11 +349,12 @@ class RectNode extends SNode {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    setAttribute(name: string, value: string): void {
+    setAttribute(name: string, value: string): SNode {
         if (this._element === undefined) {
             throw new Error('RectNode initialization error');
         }
         this._element.setAttribute(name, value);
+        return this;
     }
     /**
      * update SVG.
@@ -426,11 +426,12 @@ class LineEdge extends SEdge {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    setAttribute(name: string, value: string): void {
+    setAttribute(name: string, value: string): SEdge {
         if (this._element === undefined) {
             throw new Error('LineEdge initialization error');
         }
         this._element.setAttribute(name, value);
+        return this;
     }
     /**
      * update SVG.
@@ -480,17 +481,25 @@ class ArrowEdge extends SEdge {
         const y1 = this.node1.y;
         let x2 = this.node2.x;
         let y2 = this.node2.y;
+        const dx = x1 - x2;
+        const dy = y1 - y2;
         const bbox1 = this.node1.getBBox();
         const bbox2 = this.node2.getBBox();
-        if (x2 - bbox2.width / 2 > x1 + bbox1.width / 2) {
-            x2 -= bbox2.width / 2;
-        } else if (x2 + bbox2.width / 2 < x1 - bbox1.width / 2) {
-            x2 += bbox2.width / 2;
-        }
-        if (y2 - bbox2.height / 2 > y1 + bbox1.height / 2) {
-            y2 -= bbox2.height / 2;
-        } else if (y2 + bbox2.height / 2 < y1 - bbox1.height / 2) {
-            y2 += bbox2.height / 2;
+        if (Math.abs(dy * bbox2.width) < Math.abs(bbox2.height * dx)) {
+            // |dy/dx| < |height/width|
+            if (dx > 0) {
+                x2 += bbox2.width / 2;
+            } else {
+                x2 -= bbox2.width / 2;
+            }
+            y2 += (bbox2.width / 2) * dy / Math.abs(dx);
+        } else {
+            x2 += (bbox2.height / 2) * dx / Math.abs(dy);
+            if (dy > 0) {
+                y2 += bbox2.height / 2;
+            } else {
+                y2 -= bbox2.height / 2;
+            }
         }
         const line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
         line.setAttribute('id', this.id);
@@ -501,10 +510,6 @@ class ArrowEdge extends SEdge {
         line.setAttribute('stroke', DEFAULT_COLOR);
         svg.appendChild(line);
         this._line = line;
-        const length2 = (y1 - y2)**2 + (x1 - x2)**2;
-        const length = Math.sqrt(length2);
-        const dx = (x1 - x2) / length;
-        const dy = (y1 - y2) / length;
         const angle = Math.atan2(dy, dx);
         const angle1 = angle + Math.PI / 6;
         const angle2 = angle - Math.PI / 6;
@@ -550,7 +555,7 @@ class ArrowEdge extends SEdge {
      * @param name  Attribute name.
      * @param value  Attribute value.
      */
-    setAttribute(name: string, value: string): void {
+    setAttribute(name: string, value: string): SEdge {
         if (this._line === undefined ||
             this._head1 === undefined ||
             this._head2 === undefined) {
@@ -559,6 +564,7 @@ class ArrowEdge extends SEdge {
         this._line.setAttribute(name, value);
         this._head1.setAttribute(name, value);
         this._head2.setAttribute(name, value);
+        return this;
     }
     /**
      * update SVG.
@@ -573,17 +579,25 @@ class ArrowEdge extends SEdge {
         const y1 = this.node1.y;
         let x2 = this.node2.x;
         let y2 = this.node2.y;
+        const dx = x1 - x2;
+        const dy = y1 - y2;
         const bbox1 = this.node1.getBBox();
         const bbox2 = this.node2.getBBox();
-        if (x2 - bbox2.width / 2 > x1 + bbox1.width / 2) {
-            x2 -= bbox2.width / 2;
-        } else if (x2 + bbox2.width / 2 < x1 - bbox1.width / 2) {
-            x2 += bbox2.width / 2;
-        }
-        if (y2 - bbox2.height / 2 > y1 + bbox1.height / 2) {
-            y2 -= bbox2.height / 2;
-        } else if (y2 + bbox2.height / 2 < y1 - bbox1.height / 2) {
-            y2 += bbox2.height / 2;
+        if (Math.abs(dy * bbox2.width) < Math.abs(bbox2.height * dx)) {
+            // |dy/dx| < |height/width|
+            if (dx > 0) {
+                x2 += bbox2.width / 2;
+            } else {
+                x2 -= bbox2.width / 2;
+            }
+            y2 += (bbox2.width / 2) * dy / Math.abs(dx);
+        } else {
+            x2 += (bbox2.height / 2) * dx / Math.abs(dy);
+            if (dy > 0) {
+                y2 += bbox2.height / 2;
+            } else {
+                y2 -= bbox2.height / 2;
+            }
         }
         this._line.setAttribute('x1', _float2intstr(x1));
         this._line.setAttribute('y1', _float2intstr(y1));
@@ -592,8 +606,6 @@ class ArrowEdge extends SEdge {
 
         const length2 = (y1 - y2)**2 + (x1 - x2)**2;
         const length = Math.sqrt(length2);
-        const dx = (x1 - x2) / length;
-        const dy = (y1 - y2) / length;
         const angle = Math.atan2(dy, dx);
 
         const angle1 = angle + Math.PI / 6;
@@ -607,45 +619,6 @@ class ArrowEdge extends SEdge {
         this._head2.setAttribute('y1', _float2intstr(y2 + this.head_size * Math.sin(angle2)));
         this._head2.setAttribute('x2', _float2intstr(x2));
         this._head2.setAttribute('y2', _float2intstr(y2));
-    }
-}
-
-/**
- * Constraint the potision of nodes into the SVG graphics area.
- */
-class FieldConstraint extends SConstraint {
-    margin: number;
-    /**
-     * @param margin  Margin value.
-     */
-    constructor(margin: number) {
-        super();
-        this.margin = margin;
-    }
-    /**
-     * Apply constraint to all existing nodes.
-     */
-    apply_constraint(): void {
-        const svg = document.querySelector('svg');
-        if (svg == null) {
-            throw new Error("invalid svg container");
-        }
-        const width = svg.getBoundingClientRect().width;
-        const height = svg.getBoundingClientRect().height;
-        for (const node of _NODES_MAP.values()) {
-            if (node.x < this.margin) {
-                node.x = this.margin;
-            }
-            if (node.y < this.margin) {
-                node.y = this.margin;
-            }
-            if (node.x > width - this.margin) {
-                node.x = width - this.margin;
-            }
-            if (node.y > height - this.margin) {
-                node.y = height - this.margin;
-            }
-        }
     }
 }
 
@@ -695,15 +668,15 @@ function _update(dt: number) {
         node2.fx -= fx;
         node2.fy -= fy;
     }
+    for (const constraint of _CONSTRAINTS_MAP.values()) {
+        constraint.apply_constraint();
+    }
     // update node momentums and positions
     for (const node of _NODES_MAP.values()) {
         node.mx = node.mx * (1 - node.moment_decay) + node.fx * dt;
         node.my = node.my * (1 - node.moment_decay) + node.fy * dt;
         node.x += (node.mx / node.m) * dt;
         node.y += (node.my / node.m) * dt;
-    }
-    for (const constraint of _CONSTRAINTS_MAP.values()) {
-        constraint.apply_constraint();
     }
     // update display
     for (const node of _NODES_MAP.values()) {

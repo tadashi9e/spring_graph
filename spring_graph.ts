@@ -17,6 +17,9 @@
 //    Draw arrow edge.
 //    Connection of two TextNode/RectNode elements.
 //    Behaves like a spring between two TextNode/RectNode elements.
+// class TripleEdge
+//    Draw arrow edge with label (subject-predicate-object).
+//    Composition of ArrowEdge and LineEdge.
 // ----------------------------------------------------------------------
 var DEFAULT_COLOR = 'black';
 
@@ -585,14 +588,24 @@ class ArrowEdge extends SEdge {
      * @param value  Attribute value.
      */
     setAttribute(name: string, value: string): SEdge {
-        if (this._line === undefined ||
-            this._head1 === undefined ||
+        this.setHeadAttribute(name, value);
+        this.setLineAttribute(name, value);
+        return this;
+    }
+    setHeadAttribute(name: string, value: string): ArrowEdge {
+        if (this._head1 === undefined ||
             this._head2 === undefined) {
             throw new Error('SEdge initialization error');
         }
-        this._line.setAttribute(name, value);
         this._head1.setAttribute(name, value);
         this._head2.setAttribute(name, value);
+        return this;
+    }
+    setLineAttribute(name: string, value: string): ArrowEdge {
+        if (this._line === undefined) {
+            throw new Error('SEdge initialization error');
+        }
+        this._line.setAttribute(name, value);
         return this;
     }
     /**
@@ -642,45 +655,45 @@ class ArrowEdge extends SEdge {
 class TripleEdge {
     private _head: ArrowEdge;
     private _tail: LineEdge;
-    private _v: SNode;
+    private _predicate: SNode;
     private _constraint: SConstraint;
     /**
      * @param s  Subject.
-     * @param v  Verb.
+     * @param p  Predicate.
      * @param o  Object.
      */
-    constructor(s: SNode, v: SNode, o: SNode) {
-        this._head = new ArrowEdge(v, o);
-        this._tail = new LineEdge(s, v);
-        this._v = v;
+    constructor(s: SNode, p: SNode, o: SNode) {
+        this._head = new ArrowEdge(p, o);
+        this._tail = new LineEdge(s, p);
+        this._predicate = p;
         class TripleEdgeConstraint extends SConstraint {
             private s: SNode;
-            private v: SNode;
+            private p: SNode;
             private o: SNode;
-            constructor(s: SNode, v: SNode, o: SNode) {
+            constructor(s: SNode, p: SNode, o: SNode) {
                 super();
                 this.s = s;
-                this.v = v;
+                this.p = p;
                 this.o = o;
             }
             apply_constraint(): void {
-                const ave_x = (this.s.x + this.v.x + this.o.x) / 3;
-                const ave_y = (this.s.y + this.v.y + this.o.y) / 3;
-                const ave_mx = (this.s.mx + this.v.mx + this.o.mx) / 3;
-                const ave_my = (this.s.my + this.v.my + this.o.my) / 3;
-                const ave_fx = (this.s.fx + this.v.fx + this.o.fx) / 3;
-                const ave_fy = (this.s.fy + this.v.fy + this.o.fy) / 3;
+                const ave_x = (this.s.x + this.p.x + this.o.x) / 3;
+                const ave_y = (this.s.y + this.p.y + this.o.y) / 3;
+                const ave_mx = (this.s.mx + this.p.mx + this.o.mx) / 3;
+                const ave_my = (this.s.my + this.p.my + this.o.my) / 3;
+                const ave_fx = (this.s.fx + this.p.fx + this.o.fx) / 3;
+                const ave_fy = (this.s.fy + this.p.fy + this.o.fy) / 3;
                 const dx = this.s.x - this.o.x;
                 const dy = this.s.y - this.o.y;
                 this.s.x = ave_x + dx / 2;
                 this.s.y = ave_y + dy / 2;
-                this.v.x = ave_x;
-                this.v.y = ave_y;
+                this.p.x = ave_x;
+                this.p.y = ave_y;
                 this.o.x = ave_x - dx / 2;
                 this.o.y = ave_y - dy / 2;
             }
         }
-        this._constraint = new TripleEdgeConstraint(s, v, o);
+        this._constraint = new TripleEdgeConstraint(s, p, o);
     }
     /**
      * Delete this edge.
@@ -702,6 +715,15 @@ class TripleEdge {
      */
     setAttribute(name: string, value: string): TripleEdge {
         this._head.setAttribute(name, value);
+        this._tail.setAttribute(name, value);
+        return this;
+    }
+    setHeadAttribute(name: string, value: string): TripleEdge {
+        this._head.setHeadAttribute(name, value);
+        return this;
+    }
+    setLineAttribute(name: string, value: string): TripleEdge {
+        this._head.setLineAttribute(name, value);
         this._tail.setAttribute(name, value);
         return this;
     }

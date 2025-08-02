@@ -46,8 +46,8 @@ function test_draw_classes() {
         const svg_text_node = new TextNode("SVG:<text/>");
         // new VerticalConstraint(svg_text_node, text_node);
         new TripleEdge(text_node, new TextNode("_element"), svg_text_node)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
     }
     const rect_node = new TextNode("RectNode");
     {
@@ -59,14 +59,14 @@ function test_draw_classes() {
     {
         // new VerticalConstraint(svg_rect_node, rect_node);
         new TripleEdge(rect_node, new TextNode("_element"), svg_rect_node)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
     }
     const sedge = new TextNode("SEdge");
     {
         new ArrowEdge(sedge, snode)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
     }
     const line_edge = new TextNode("LineEdge");
     {
@@ -76,8 +76,8 @@ function test_draw_classes() {
         const svg_line_edge = new TextNode("SVG:<line/>");
         // new VerticalConstraint(svg_line_edge, line_edge);
         new TripleEdge(line_edge, new TextNode("_line"), svg_line_edge)
-            .setLength(100)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(100);
     }
     const arrow_edge = new TextNode("ArrowEdge");
     {
@@ -92,34 +92,34 @@ function test_draw_classes() {
         // new VerticalConstraint(svg_line_edge_head2, arrow_edge);
         new TripleEdge(arrow_edge, new TextNode("_line"),
                        svg_line_edge_line)
-            .setLength(100)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(100);
         new TripleEdge(arrow_edge, new TextNode("_head1"),
                        svg_line_edge_head1)
-            .setLength(100)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(100);
         new TripleEdge(arrow_edge, new TextNode("_head2"),
                        svg_line_edge_head2)
-            .setLength(100)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(100);
     }
     const triple_edge = new TextNode("TripleEdge");
     {
         new VerticalConstraint(arrow_edge, triple_edge);
         new VerticalConstraint(line_edge, triple_edge);
         new TripleEdge(triple_edge, new TextNode("_head"), arrow_edge)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
         new TripleEdge(triple_edge, new TextNode("_tail"), line_edge)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
         const triple_edge_constraint = new TextNode("TripleEdgeConstraint");
         new ArrowEdge(triple_edge_constraint, sconstraint)
             .setLength(50);
         new TripleEdge(triple_edge, new TextNode("_constraint"),
                        triple_edge_constraint)
-            .setLength(50)
-            .setAttribute("stroke-dasharray", "4");
+            .setLineAttribute("stroke-dasharray", "4")
+            .setLength(50);
     }
     new HorizontalConstraint(text_node, rect_node);
     new HorizontalConstraint(triple_edge, text_node);
@@ -131,20 +131,20 @@ function test_draw_classes() {
     new VerticalConstraint(snode, vertical_constraint);
     new VerticalConstraint(snode, horizontal_constraint);
     new ArrowEdge(field_constraint, snode)
-        .setLength(50)
-        .setAttribute("stroke-dasharray", "4");
+        .setLineAttribute("stroke-dasharray", "4")
+        .setLength(50);
     new ArrowEdge(vertical_compound_constraint, snode)
-        .setLength(50)
-        .setAttribute("stroke-dasharray", "4");
+        .setLineAttribute("stroke-dasharray", "4")
+        .setLength(50);
     new ArrowEdge(horizontal_compound_constraint, snode)
-        .setLength(50)
-        .setAttribute("stroke-dasharray", "4");
+        .setLineAttribute("stroke-dasharray", "4")
+        .setLength(50);
     new ArrowEdge(vertical_constraint, snode)
-        .setLength(50)
-        .setAttribute("stroke-dasharray", "4");
+        .setLineAttribute("stroke-dasharray", "4")
+        .setLength(50);
     new ArrowEdge(horizontal_constraint, snode)
-        .setLength(50)
-        .setAttribute("stroke-dasharray", "4");
+        .setLineAttribute("stroke-dasharray", "4")
+        .setLength(50);
 }
 
 function test_add_linked_list() {

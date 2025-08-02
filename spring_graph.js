@@ -73,12 +73,12 @@ class SNode {
         const width = svg.getBoundingClientRect().width;
         const height = svg.getBoundingClientRect().height;
         if (x === undefined) {
-            // x = height * Math.random();
-            x = width * (1 + Math.random()) / 3;
+            x = width * Math.random();
+            // x = width * (1 + Math.random()) / 3;
         }
         if (y === undefined) {
-            // y = height * Math.random();
-            y = height * (1 + Math.random()) / 3;
+            y = height * Math.random();
+            // y = height * (1 + Math.random()) / 3;
         }
         this.x = x;
         this.y = y;
@@ -117,6 +117,10 @@ class SEdge {
      */
     dispose() {
         _EDGES_MAP.delete(this.id);
+    }
+    setLength(length) {
+        this.length = length;
+        return this;
     }
 }
 class SConstraint {
@@ -319,15 +323,15 @@ class LineEdge extends SEdge {
         line.setAttribute('y2', _float2intstr(this.node2.y));
         line.setAttribute('stroke', DEFAULT_COLOR);
         svg.appendChild(line);
-        this._element = line;
+        this._line = line;
     }
     /**
      * Delete this edge.
      */
     dispose() {
-        if (this._element !== undefined) {
-            this._element.remove();
-            this._element = undefined;
+        if (this._line !== undefined) {
+            this._line.remove();
+            this._line = undefined;
         }
         super.dispose();
     }
@@ -337,23 +341,23 @@ class LineEdge extends SEdge {
      * @param value  Attribute value.
      */
     setAttribute(name, value) {
-        if (this._element === undefined) {
+        if (this._line === undefined) {
             throw new Error('LineEdge initialization error');
         }
-        this._element.setAttribute(name, value);
+        this._line.setAttribute(name, value);
         return this;
     }
     /**
      * update SVG.
      */
     update_position() {
-        if (this._element === undefined) {
+        if (this._line === undefined) {
             throw new Error('LineEdge initialization error');
         }
-        this._element.setAttribute('x1', _float2intstr(this.node1.x));
-        this._element.setAttribute('y1', _float2intstr(this.node1.y));
-        this._element.setAttribute('x2', _float2intstr(this.node2.x));
-        this._element.setAttribute('y2', _float2intstr(this.node2.y));
+        this._line.setAttribute('x1', _float2intstr(this.node1.x));
+        this._line.setAttribute('y1', _float2intstr(this.node1.y));
+        this._line.setAttribute('x2', _float2intstr(this.node2.x));
+        this._line.setAttribute('y2', _float2intstr(this.node2.y));
     }
 }
 /**
@@ -373,20 +377,16 @@ class ArrowEdge extends SEdge {
         this._display();
     }
     /**
-     * Create SVG &lt;line/&gt; elements.
+     * Get arrow head point. Depend on node2 border size.
+     * @return [x,y]
      */
-    _display() {
-        const svg = document.querySelector('svg');
-        if (svg == null) {
-            throw new Error("invalid svg container");
-        }
+    _get_node2_border_point() {
         const x1 = this.node1.x;
         const y1 = this.node1.y;
         let x2 = this.node2.x;
         let y2 = this.node2.y;
         const dx = x1 - x2;
         const dy = y1 - y2;
-        const bbox1 = this.node1.getBBox();
         const bbox2 = this.node2.getBBox();
         if (Math.abs(dy * bbox2.width) < Math.abs(bbox2.height * dx)) {
             // |dy/dx| < |height/width|
@@ -396,10 +396,15 @@ class ArrowEdge extends SEdge {
             else {
                 x2 -= bbox2.width / 2;
             }
-            y2 += (bbox2.width / 2) * dy / Math.abs(dx);
+            if (dx != 0) {
+                y2 += (bbox2.width / 2) * dy / Math.abs(dx);
+            }
         }
         else {
-            x2 += (bbox2.height / 2) * dx / Math.abs(dy);
+            // |dy/dx| >= |height/width|
+            if (dy != 0) {
+                x2 += (bbox2.height / 2) * dx / Math.abs(dy);
+            }
             if (dy > 0) {
                 y2 += bbox2.height / 2;
             }
@@ -407,6 +412,21 @@ class ArrowEdge extends SEdge {
                 y2 -= bbox2.height / 2;
             }
         }
+        return [x2, y2];
+    }
+    /**
+     * Create SVG &lt;line/&gt; elements.
+     */
+    _display() {
+        const svg = document.querySelector('svg');
+        if (svg == null) {
+            throw new Error("invalid svg container");
+        }
+        const x1 = this.node1.x;
+        const y1 = this.node1.y;
+        const point2 = this._get_node2_border_point();
+        const x2 = point2[0];
+        const y2 = point2[1];
         const line = document.createElementNS("http://www.w3.org/2000/svg", 'line');
         line.setAttribute('id', this.id);
         line.setAttribute('x1', _float2intstr(x1));
@@ -416,6 +436,8 @@ class ArrowEdge extends SEdge {
         line.setAttribute('stroke', DEFAULT_COLOR);
         svg.appendChild(line);
         this._line = line;
+        const dx = x1 - x2;
+        const dy = y1 - y2;
         const angle = Math.atan2(dy, dx);
         const angle1 = angle + Math.PI / 6;
         const angle2 = angle - Math.PI / 6;
@@ -439,7 +461,7 @@ class ArrowEdge extends SEdge {
         this._head2 = head2;
     }
     /**
-     * Delete this node.
+     * Delete this edge.
      */
     dispose() {
         if (this._line !== undefined) {
@@ -483,37 +505,15 @@ class ArrowEdge extends SEdge {
         }
         const x1 = this.node1.x;
         const y1 = this.node1.y;
-        let x2 = this.node2.x;
-        let y2 = this.node2.y;
-        const dx = x1 - x2;
-        const dy = y1 - y2;
-        const bbox1 = this.node1.getBBox();
-        const bbox2 = this.node2.getBBox();
-        if (Math.abs(dy * bbox2.width) < Math.abs(bbox2.height * dx)) {
-            // |dy/dx| < |height/width|
-            if (dx > 0) {
-                x2 += bbox2.width / 2;
-            }
-            else {
-                x2 -= bbox2.width / 2;
-            }
-            y2 += (bbox2.width / 2) * dy / Math.abs(dx);
-        }
-        else {
-            x2 += (bbox2.height / 2) * dx / Math.abs(dy);
-            if (dy > 0) {
-                y2 += bbox2.height / 2;
-            }
-            else {
-                y2 -= bbox2.height / 2;
-            }
-        }
+        const point2 = this._get_node2_border_point();
+        const x2 = point2[0];
+        const y2 = point2[1];
         this._line.setAttribute('x1', _float2intstr(x1));
         this._line.setAttribute('y1', _float2intstr(y1));
         this._line.setAttribute('x2', _float2intstr(x2));
         this._line.setAttribute('y2', _float2intstr(y2));
-        const length2 = (y1 - y2) ** 2 + (x1 - x2) ** 2;
-        const length = Math.sqrt(length2);
+        const dx = x1 - x2;
+        const dy = y1 - y2;
         const angle = Math.atan2(dy, dx);
         const angle1 = angle + Math.PI / 6;
         this._head1.setAttribute('x1', _float2intstr(x2 + this.head_size * Math.cos(angle1)));
@@ -525,6 +525,70 @@ class ArrowEdge extends SEdge {
         this._head2.setAttribute('y1', _float2intstr(y2 + this.head_size * Math.sin(angle2)));
         this._head2.setAttribute('x2', _float2intstr(x2));
         this._head2.setAttribute('y2', _float2intstr(y2));
+    }
+}
+/**
+ * RDF-triple like edge.
+ * Arrow edge with label.
+ */
+class TripleEdge {
+    /**
+     * @param s  Subject.
+     * @param v  Verb.
+     * @param o  Object.
+     */
+    constructor(s, v, o) {
+        this._head = new ArrowEdge(v, o);
+        this._tail = new LineEdge(s, v);
+        this._v = v;
+        class TripleEdgeConstraint extends SConstraint {
+            constructor(s, v, o) {
+                super();
+                this.s = s;
+                this.v = v;
+                this.o = o;
+            }
+            apply_constraint() {
+                const ave_x = (this.s.x + this.v.x + this.o.x) / 3;
+                const ave_y = (this.s.y + this.v.y + this.o.y) / 3;
+                const ave_mx = (this.s.mx + this.v.mx + this.o.mx) / 3;
+                const ave_my = (this.s.my + this.v.my + this.o.my) / 3;
+                const ave_fx = (this.s.fx + this.v.fx + this.o.fx) / 3;
+                const ave_fy = (this.s.fy + this.v.fy + this.o.fy) / 3;
+                const dx = this.s.x - this.o.x;
+                const dy = this.s.y - this.o.y;
+                this.s.x = ave_x + dx / 2;
+                this.s.y = ave_y + dy / 2;
+                this.v.x = ave_x;
+                this.v.y = ave_y;
+                this.o.x = ave_x - dx / 2;
+                this.o.y = ave_y - dy / 2;
+            }
+        }
+        this._constraint = new TripleEdgeConstraint(s, v, o);
+    }
+    /**
+     * Delete this edge.
+     */
+    dispose() {
+        this._constraint.dispose();
+        this._head.dispose();
+        this._tail.dispose();
+    }
+    setLength(length) {
+        this._head.setLength(length);
+        this._tail.setLength(length);
+        return this;
+    }
+    /**
+     * call setAttribute
+     * @param name  Attribute name.
+     * @param value  Attribute value.
+     */
+    setAttribute(name, value) {
+        this._head.setAttribute(name, value);
+        this._tail.setAttribute(name, value);
+        return this;
     }
 }
 // ----------------------------------------------------------------------

@@ -39,20 +39,23 @@ class FieldConstraint extends SConstraint {
         if (svg == null) {
             throw new Error("invalid svg container");
         }
-        const width = svg.getBoundingClientRect().width;
-        const height = svg.getBoundingClientRect().height;
+        const field_width = svg.getBoundingClientRect().width;
+        const field_height = svg.getBoundingClientRect().height;
         for (const node of _NODES_MAP.values()) {
-            if (node.x < this.margin) {
-                node.x = this.margin;
+            const bbox = node.getBBox();
+            const width = bbox.width / 2;
+            const height = bbox.height / 2;
+            if (node.x - width < this.margin) {
+                node.x = width + this.margin;
             }
-            if (node.y < this.margin) {
-                node.y = this.margin;
+            if (node.y - height< this.margin) {
+                node.y = height + this.margin;
             }
-            if (node.x > width - this.margin) {
-                node.x = width - this.margin;
+            if (node.x + width > field_width - this.margin) {
+                node.x = field_width - this.margin - width;
             }
-            if (node.y > height - this.margin) {
-                node.y = height - this.margin;
+            if (node.y + height > field_height - this.margin) {
+                node.y = field_height - this.margin - height;
             }
         }
     }
